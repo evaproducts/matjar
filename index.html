@@ -381,4 +381,175 @@
         try {
             // جلب كافة المستندات والبحث المرن لتجنب أي اختلاف في حقول الفايربيس
             const querySnapshot = await getDocs(collection(db, "licenses"));
-            let matchedDoc = null
+            let matchedDoc = null;
+
+            querySnapshot.forEach((document) => {
+                const data = document.data();
+                const dbPhone = String(data.phone || '').trim();
+                const dbKey = String(data.key_code || '').trim();
+
+                if(dbPhone === phoneInput && dbKey === keyInput) {
+                    matchedDoc = { id: document.id, ...data };
+                }
+            });
+
+            if(!matchedDoc) {
+                alert('خطأ في رقم الهاتف أو رمز التفعيل! تأكد من البيانات المدخلة.');
+                return;
+            }
+
+            currentLicenseId = matchedDoc.id;
+            storeData = matchedDoc;
+
+            // إخفاء النوافذ وإظهار لوحة التحكم كاملة
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('pricingOverlay').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'grid';
+            
+            loadDashboardData();
+        } catch(e) {
+            console.error(e);
+            alert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('mainDashboard').style.display = 'none';
+        document.getElementById('homeScreen').style.display = 'block';
+    });
+
+    function loadDashboardData() {
+        document.getElementById('sidebarStoreName').innerText = storeData.client_name || 'EVA Catalog';
+        document.getElementById('managerNameInput').value = storeData.manager_name || '';
+        document.getElementById('storeNameInput').value = storeData.client_name || '';
+        document.getElementById('brandSlugInput').value = storeData.brand_slug || '';
+        document.getElementById('managerPhoneInput').value = storeData.phone || '';
+        document.getElementById('storeWhatsappInput').value = storeData.store_whatsapp || '';
+        document.getElementById('storeLogoInput').value = storeData.store_logo || '';
+        document.getElementById('adminMessageInput').value = storeData.admin_message || '';
+        
+        // عرض رابط الكتالوج الخاص باليوزر (الرابط الأساسي / اسم البراند بالإنجليزية)
+        const slug = storeData.brand_slug || 'store';
+        document.getElementById('displayCatalogLink').value = `linky.ps/eva/${slug}`;
+
+        const expDate = storeData.expire_date ? new Date(storeData.expire_date).toLocaleDateString() : 'مفتوح';
+        document.getElementById('subscriptionStatusBox').innerHTML = `حالة الاشتراك: ساري حتى تاريخ ${expDate}`;
+        document.getElementById('productCodeInput').value = 'PROD-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        
+        loadSectionsDropdown();
+        loadSectionsTable();
+        loadProductsTable();
+    }
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+        storeData.manager_name = document.getElementById('managerNameInput').value;
+        storeData.client_name = document.getElementById('storeNameInput').value;
+        storeData.brand_slug = document.getElementById('brandSlugInput').value.trim().toLowerCase();
+        storeData.store_whatsapp = document.getElementById('storeWhatsappInput').value;
+        storeData.store_logo = document.getElementById('storeLogoInput').value;
+        storeData.admin_message = document.getElementById('adminMessageInput').value;
+        
+        await updateDoc(doc(db, "licenses", currentLicenseId), storeData);
+        alert('تم حفظ إعدادات المتجر بنجاح!');
+        loadDashboardData();
+    });
+
+    document.getElementById('addSectionBtn').addEventListener('click', async () => {
+        const name = document.getElementById('newSectionName').value.trim();
+        const img = document.getElementById('newSectionImage').value.trim();
+        if(!name) { alert('يرجى إدخال اسم القسم!'); return; }
+        if(!storeData.sections) storeData.sections = [];
+        storeData.sections.push({ name, image: img || 'https://via.placeholder.com/150' });
+        
+        await updateDoc(doc(db, "licenses", currentLicenseId), { sections: storeData.sections });
+        alert('تم إضافة القسم بنجاح!');
+        document.getElementById('newSectionName').value = '';
+        document.getElementById('newSectionImage').value = '';
+        loadSectionsDropdown();
+        loadSectionsTable();
+    });
+
+    function loadSectionsDropdown() {
+        const select = document.getElementById('productSectionSelect');
+        select.innerHTML = '';
+        if(storeData.sections && storeData.sections.length > 0) {
+            storeData.sections.forEach(sec => { select.innerHTML += `<option value="${sec.name}">${sec.name}</option>`; });
+        } else {
+            select.innerHTML = `<option value="">يرجى إضافة أقسام أولاً</option>`;
+        }
+    }
+
+    function loadSectionsTable() {
+        const tbody = document.getElementById('sectionsTableBody');
+        tbody.innerHTML = '';
+        if(!storeData.sections || storeData.sections.length === 0) { tbody.innerHTML = '<tr><td colspan="2">لا توجد أقسام مضافة</td></tr>'; return; }
+        storeData.sections.forEach((sec, index) => {
+            tbody.innerHTML += `<tr><td><b>${sec.name}</b></td><td><button class="action-btn delete-action-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="window.deleteSection(${index})">حذف</button></td></tr>`;
+        });
+    }
+
+    window.deleteSection = async function(index) {
+        if(confirm('هل أنت متأكد من حذف هذا القسم؟')) {
+            storeData.sections.splice(index, 1);
+            await updateDoc(doc(db, "licenses", currentLicenseId), { sections: storeData.sections });
+            loadSectionsDropdown();
+            loadSectionsTable();
+        }
+    }
+
+    document.getElementById('addProductBtn').addEventListener('click', async () => {
+        const section = document.getElementById('productSectionSelect').value;
+        const name = document.getElementById('productNameInput').value.trim();
+        const code = document.getElementById('productCodeInput').value;
+        const price = document.getElementById('productPriceInput').value;
+        const profit = document.getElementById('productProfitInput').value;
+        const image = document.getElementById('productImageInput').value;
+        
+        if(!name || !price) { alert('يرجى إدخال اسم المنتج والسعر!'); return; }
+        if(!storeData.products) storeData.products = [];
+        storeData.products.push({ section, name, code, price, profit, image });
+        
+        await updateDoc(doc(db, "licenses", currentLicenseId), { products: storeData.products });
+        alert('تم حفظ المنتج بنجاح!');
+        document.getElementById('productNameInput').value = '';
+        document.getElementById('productPriceInput').value = '';
+        document.getElementById('productProfitInput').value = '';
+        document.getElementById('productImageInput').value = '';
+        document.getElementById('productCodeInput').value = 'PROD-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        loadProductsTable();
+    });
+
+    function loadProductsTable() {
+        const tbody = document.getElementById('productsTableBody');
+        tbody.innerHTML = '';
+        if(!storeData.products || storeData.products.length === 0) { tbody.innerHTML = '<tr><td colspan="5">لا توجد منتجات مضافة</td></tr>'; return; }
+        storeData.products.forEach((prod, index) => {
+            tbody.innerHTML += `<tr><td><b>${prod.code}</b></td><td>${prod.name}</td><td>${prod.section}</td><td>${prod.price} ₪</td><td><button class="action-btn delete-action-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="window.deleteProduct(${index})">حذف</button></td></tr>`;
+        });
+    }
+
+    window.deleteProduct = async function(index) {
+        if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+            storeData.products.splice(index, 1);
+            await updateDoc(doc(db, "licenses", currentLicenseId), { products: storeData.products });
+            loadProductsTable();
+        }
+    }
+
+    document.getElementById('saveSocialBtn').addEventListener('click', async () => {
+        storeData.social = {
+            fb_active: document.getElementById('showFacebook').checked,
+            fb_link: document.getElementById('facebookLink').value,
+            insta_active: document.getElementById('showInstagram').checked,
+            insta_link: document.getElementById('instagramLink').value,
+            tiktok_active: document.getElementById('showTiktok').checked,
+            tiktok_link: document.getElementById('tiktokLink').value
+        };
+        await updateDoc(doc(db, "licenses", currentLicenseId), { social: storeData.social });
+        alert('تم حفظ روابط التواصل الاجتماعي بنجاح!');
+    });
+</script>
+
+</body>
+</html>
