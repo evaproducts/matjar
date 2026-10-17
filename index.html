@@ -96,9 +96,38 @@
         th { background-color: var(--surface-2); color: var(--muted); font-weight: 700; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* تصميم واجهة الكتالوج العام للزبائن */
+        #publicCatalogView { display: none; max-width: 800px; margin: 0 auto; padding: 30px 20px; text-align: center; }
+        .catalog-header { background: var(--surface); padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--line); }
+        .catalog-logo { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--primary); }
+        .admin-note { background: var(--primary-soft); color: var(--primary); padding: 12px; border-radius: 12px; font-weight: 700; margin: 15px 0; }
+        .social-icons { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+        .social-icon-btn { background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.1rem; }
+        .sections-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; text-align: right; }
+        .section-card { background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center; }
+        .section-card img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-bottom: 8px; }
     </style>
 </head>
 <body>
+
+<!-- واجهة الكتالوج العامة للزبائن (تظهر تلقائياً إذا كان هناك رابط متجر ?store=...) -->
+<div id="publicCatalogView">
+    <div class="catalog-header">
+        <img id="pubStoreLogo" class="catalog-logo" src="https://via.placeholder.com/90" alt="Logo">
+        <h1 id="pubStoreName" style="font-size: 1.8rem; font-weight: 900; color: var(--ink);">اسم المتجر</h1>
+        <div id="pubAdminMessage" class="admin-note">رسالة الإدارة الترحيبية</div>
+        <div id="pubSocialLinks" class="social-icons">
+            <!-- أزرار التواصل الاجتماعي تتعبى ديناميكياً -->
+        </div>
+    </div>
+    <div class="card">
+        <h2><i class="fa-solid fa-folder-open"></i> أقسام المعرض</h2>
+        <div id="pubSectionsContainer" class="sections-grid">
+            <!-- الأقسام تتعبى ديناميكياً -->
+        </div>
+    </div>
+</div>
 
 <!-- الشاشة الرئيسية التعريفية -->
 <div id="homeScreen">
@@ -231,7 +260,7 @@
             <div class="card">
                 <h2><i class="fa-solid fa-circle-info"></i> حالة الاشتراك والرابط الخاص</h2>
                 <div class="form-group">
-                    <label>رابط الكتالوج الخاص بك:</label>
+                    <label>رابط الكتالوج الخاص بك (انسخه وشاركه مع زبائك):</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="displayCatalogLink" readonly style="background: #eee;">
                         <button class="action-btn" style="width: auto;" onclick="copyLink()">نسخ الرابط</button>
@@ -349,7 +378,7 @@
     });
 </script>
 
-<!-- سكريبت Firebase والتحقق وتجاوز أي قيود في الأسماء -->
+<!-- سكريبت Firebase ومعالجة روابط الكتالوج العامة -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -369,6 +398,73 @@
     let currentLicenseId = null;
     let storeData = {};
 
+    // التحقق التلقائي عند فتح الصفحة: هل هناك باراميتر ?store= في الرابط؟
+    async function checkPublicCatalog() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const storeSlug = urlParams.get('store');
+
+        if(storeSlug) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "licenses"));
+                let foundStore = null;
+
+                querySnapshot.forEach((document) => {
+                    const data = document.data();
+                    if(String(data.brand_slug || '').trim().toLowerCase() === storeSlug.trim().toLowerCase()) {
+                        foundStore = data;
+                    }
+                });
+
+                if(foundStore) {
+                    // إخفاء كل شيء وإظهار واجهة الكتالوج العامة للزبائن
+                    document.getElementById('homeScreen').style.display = 'none';
+                    document.getElementById('publicCatalogView').style.display = 'block';
+
+                    document.getElementById('pubStoreName').innerText = foundStore.client_name || 'متجر رقمي';
+                    document.getElementById('pubStoreLogo').src = foundStore.store_logo || 'https://via.placeholder.com/90';
+                    document.getElementById('pubAdminMessage').innerText = foundStore.admin_message || 'أهلاً بك في متجرنا!';
+
+                    // عرض الأقسام الخاصة بهذا المتجر
+                    const secContainer = document.getElementById('pubSectionsContainer');
+                    secContainer.innerHTML = '';
+                    if(foundStore.sections && foundStore.sections.length > 0) {
+                        foundStore.sections.forEach(sec => {
+                            secContainer.innerHTML += `
+                                <div class="section-card">
+                                    <img src="${sec.image}" alt="${sec.name}">
+                                    <div style="font-weight:700; font-size:0.9rem;">${sec.name}</div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        secContainer.innerHTML = '<p style="grid-column: 1/-1; color: var(--muted);">لا توجد أقسام مضافة حالياً</p>';
+                    }
+
+                    // عرض روابط التواصل الاجتماعي الفعالة
+                    const socialBox = document.getElementById('pubSocialLinks');
+                    socialBox.innerHTML = '';
+                    if(foundStore.social) {
+                        if(foundStore.social.fb_active && foundStore.social.fb_link) {
+                            socialBox.innerHTML += `<a href="${foundStore.social.fb_link}" target="_blank" class="social-icon-btn"><i class="fa-brands fa-facebook-f"></i></a>`;
+                        }
+                        if(foundStore.social.insta_active && foundStore.social.insta_link) {
+                            socialBox.innerHTML += `<a href="${foundStore.social.insta_link}" target="_blank" class="social-icon-btn"><i class="fa-brands fa-instagram"></i></a>`;
+                        }
+                        if(foundStore.social.tiktok_active && foundStore.social.tiktok_link) {
+                            socialBox.innerHTML += `<a href="${foundStore.social.tiktok_link}" target="_blank" class="social-icon-btn"><i class="fa-brands fa-tiktok"></i></a>`;
+                        }
+                    }
+                } else {
+                    document.getElementById('homeScreen').innerHTML = '<div class="card" style="margin-top:50px;"><h2>عذراً، هذا المتجر غير موجود أو تم إلغاء تفعيله.</h2></div>';
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        }
+    }
+
+    checkPublicCatalog();
+
     document.getElementById('submitLoginBtn').addEventListener('click', async () => {
         const phoneInput = document.getElementById('loginPhone').value.trim();
         const keyInput = document.getElementById('loginKey').value.trim();
@@ -379,7 +475,6 @@
         }
 
         try {
-            // جلب كافة المستندات والبحث المرن لتجنب أي اختلاف في حقول الفايربيس
             const querySnapshot = await getDocs(collection(db, "licenses"));
             let matchedDoc = null;
 
@@ -394,14 +489,13 @@
             });
 
             if(!matchedDoc) {
-                alert('خطأ في رقم الهاتف أو رمز التفعيل! تأكد من البيانات المدخلة.');
+                alert('خطأ في رقم الهاتف أو رمز التفعيل!');
                 return;
             }
 
             currentLicenseId = matchedDoc.id;
             storeData = matchedDoc;
 
-            // إخفاء النوافذ وإظهار لوحة التحكم كاملة
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('pricingOverlay').style.display = 'none';
@@ -409,147 +503,8 @@
             
             loadDashboardData();
         } catch(e) {
-            console.error(e);
             alert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
         }
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        document.getElementById('mainDashboard').style.display = 'none';
-        document.getElementById('homeScreen').style.display = 'block';
-    });
-
-    function loadDashboardData() {
-        document.getElementById('sidebarStoreName').innerText = storeData.client_name || 'EVA Catalog';
-        document.getElementById('managerNameInput').value = storeData.manager_name || '';
-        document.getElementById('storeNameInput').value = storeData.client_name || '';
-        document.getElementById('brandSlugInput').value = storeData.brand_slug || '';
-        document.getElementById('managerPhoneInput').value = storeData.phone || '';
-        document.getElementById('storeWhatsappInput').value = storeData.store_whatsapp || '';
-        document.getElementById('storeLogoInput').value = storeData.store_logo || '';
-        document.getElementById('adminMessageInput').value = storeData.admin_message || '';
-        
-        // عرض رابط الكتالوج الخاص باليوزر (الرابط الأساسي / اسم البراند بالإنجليزية)
-        const slug = storeData.brand_slug || 'store';
-        document.getElementById('displayCatalogLink').value = `linky.ps/eva/${slug}`;
-
-        const expDate = storeData.expire_date ? new Date(storeData.expire_date).toLocaleDateString() : 'مفتوح';
-        document.getElementById('subscriptionStatusBox').innerHTML = `حالة الاشتراك: ساري حتى تاريخ ${expDate}`;
-        document.getElementById('productCodeInput').value = 'PROD-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        
-        loadSectionsDropdown();
-        loadSectionsTable();
-        loadProductsTable();
-    }
-
-    document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
-        storeData.manager_name = document.getElementById('managerNameInput').value;
-        storeData.client_name = document.getElementById('storeNameInput').value;
-        storeData.brand_slug = document.getElementById('brandSlugInput').value.trim().toLowerCase();
-        storeData.store_whatsapp = document.getElementById('storeWhatsappInput').value;
-        storeData.store_logo = document.getElementById('storeLogoInput').value;
-        storeData.admin_message = document.getElementById('adminMessageInput').value;
-        
-        await updateDoc(doc(db, "licenses", currentLicenseId), storeData);
-        alert('تم حفظ إعدادات المتجر بنجاح!');
-        loadDashboardData();
-    });
-
-    document.getElementById('addSectionBtn').addEventListener('click', async () => {
-        const name = document.getElementById('newSectionName').value.trim();
-        const img = document.getElementById('newSectionImage').value.trim();
-        if(!name) { alert('يرجى إدخال اسم القسم!'); return; }
-        if(!storeData.sections) storeData.sections = [];
-        storeData.sections.push({ name, image: img || 'https://via.placeholder.com/150' });
-        
-        await updateDoc(doc(db, "licenses", currentLicenseId), { sections: storeData.sections });
-        alert('تم إضافة القسم بنجاح!');
-        document.getElementById('newSectionName').value = '';
-        document.getElementById('newSectionImage').value = '';
-        loadSectionsDropdown();
-        loadSectionsTable();
-    });
-
-    function loadSectionsDropdown() {
-        const select = document.getElementById('productSectionSelect');
-        select.innerHTML = '';
-        if(storeData.sections && storeData.sections.length > 0) {
-            storeData.sections.forEach(sec => { select.innerHTML += `<option value="${sec.name}">${sec.name}</option>`; });
-        } else {
-            select.innerHTML = `<option value="">يرجى إضافة أقسام أولاً</option>`;
-        }
-    }
-
-    function loadSectionsTable() {
-        const tbody = document.getElementById('sectionsTableBody');
-        tbody.innerHTML = '';
-        if(!storeData.sections || storeData.sections.length === 0) { tbody.innerHTML = '<tr><td colspan="2">لا توجد أقسام مضافة</td></tr>'; return; }
-        storeData.sections.forEach((sec, index) => {
-            tbody.innerHTML += `<tr><td><b>${sec.name}</b></td><td><button class="action-btn delete-action-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="window.deleteSection(${index})">حذف</button></td></tr>`;
-        });
-    }
-
-    window.deleteSection = async function(index) {
-        if(confirm('هل أنت متأكد من حذف هذا القسم؟')) {
-            storeData.sections.splice(index, 1);
-            await updateDoc(doc(db, "licenses", currentLicenseId), { sections: storeData.sections });
-            loadSectionsDropdown();
-            loadSectionsTable();
-        }
-    }
-
-    document.getElementById('addProductBtn').addEventListener('click', async () => {
-        const section = document.getElementById('productSectionSelect').value;
-        const name = document.getElementById('productNameInput').value.trim();
-        const code = document.getElementById('productCodeInput').value;
-        const price = document.getElementById('productPriceInput').value;
-        const profit = document.getElementById('productProfitInput').value;
-        const image = document.getElementById('productImageInput').value;
-        
-        if(!name || !price) { alert('يرجى إدخال اسم المنتج والسعر!'); return; }
-        if(!storeData.products) storeData.products = [];
-        storeData.products.push({ section, name, code, price, profit, image });
-        
-        await updateDoc(doc(db, "licenses", currentLicenseId), { products: storeData.products });
-        alert('تم حفظ المنتج بنجاح!');
-        document.getElementById('productNameInput').value = '';
-        document.getElementById('productPriceInput').value = '';
-        document.getElementById('productProfitInput').value = '';
-        document.getElementById('productImageInput').value = '';
-        document.getElementById('productCodeInput').value = 'PROD-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        loadProductsTable();
-    });
-
-    function loadProductsTable() {
-        const tbody = document.getElementById('productsTableBody');
-        tbody.innerHTML = '';
-        if(!storeData.products || storeData.products.length === 0) { tbody.innerHTML = '<tr><td colspan="5">لا توجد منتجات مضافة</td></tr>'; return; }
-        storeData.products.forEach((prod, index) => {
-            tbody.innerHTML += `<tr><td><b>${prod.code}</b></td><td>${prod.name}</td><td>${prod.section}</td><td>${prod.price} ₪</td><td><button class="action-btn delete-action-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="window.deleteProduct(${index})">حذف</button></td></tr>`;
-        });
-    }
-
-    window.deleteProduct = async function(index) {
-        if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-            storeData.products.splice(index, 1);
-            await updateDoc(doc(db, "licenses", currentLicenseId), { products: storeData.products });
-            loadProductsTable();
-        }
-    }
-
-    document.getElementById('saveSocialBtn').addEventListener('click', async () => {
-        storeData.social = {
-            fb_active: document.getElementById('showFacebook').checked,
-            fb_link: document.getElementById('facebookLink').value,
-            insta_active: document.getElementById('showInstagram').checked,
-            insta_link: document.getElementById('instagramLink').value,
-            tiktok_active: document.getElementById('showTiktok').checked,
-            tiktok_link: document.getElementById('tiktokLink').value
-        };
-        await updateDoc(doc(db, "licenses", currentLicenseId), { social: storeData.social });
-        alert('تم حفظ روابط التواصل الاجتماعي بنجاح!');
-    });
-</script>
-
-</body>
-</html>
+    document.getElementById
