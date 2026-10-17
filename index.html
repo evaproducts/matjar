@@ -106,8 +106,8 @@
         <h1>مرحباً بك في منصة <span>EVA Catalog</span></h1>
         <p>المنصة الاحترافية الأولى لإنشاء وإدارة الكتالوجات الرقمية والمتاجر المصغرة. اعرض منتجاتك، نظم أقسامك، وشارك رابط متجرك مع زبائك بكل سهولة واحترافية.</p>
         <div class="cta-buttons">
-            <button class="btn-main" onclick="openLoginScreen()">تسجيل دخول لوحة التحكم</button>
-            <button class="btn-outline" onclick="openPricingScreen()">عرض باقات وأسعار الاشتراك</button>
+            <button class="btn-main" id="openLoginBtn">تسجيل دخول لوحة التحكم</button>
+            <button class="btn-outline" id="openPricingBtn">عرض باقات وأسعار الاشتراك</button>
         </div>
     </div>
 
@@ -133,20 +133,20 @@
 <!-- شاشة تسجيل الدخول -->
 <div id="loginOverlay">
     <div class="login-card">
-        <button onclick="closeLoginScreen()" style="position: absolute; top: 15px; left: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+        <button id="closeLoginBtn" style="position: absolute; top: 15px; left: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
         <h2>تسجيل دخول لوحة التحكم</h2>
         <p>أدخل رقم الهاتف ورمز التفعيل الخاص بمتجرك</p>
         <div class="form-group">
             <label>رقم الهاتف (User):</label>
-            <input type="text" id="loginPhone" placeholder="0594101632" maxlength="10">
+            <input type="text" id="loginPhone" placeholder="059334655" maxlength="10">
         </div>
         <div class="form-group">
             <label>رمز التفعيل:</label>
             <input type="password" id="loginKey" placeholder="EVA-CATALOG-XXXXXX">
         </div>
-        <button class="action-btn" onclick="window.executeClientLogin()">دخول لوحة التحكم</button>
+        <button class="action-btn" id="submitLoginBtn">دخول لوحة التحكم</button>
         <div style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 15px;">
-            <button class="action-btn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);" onclick="closeLoginScreen(); openPricingScreen();">عرض باقات وحزم الاشتراك</button>
+            <button class="action-btn" id=" switchToPricingBtn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);">عرض باقات وحزم الاشتراك</button>
         </div>
     </div>
 </div>
@@ -201,7 +201,7 @@
                 <button class="whatsapp-plan-btn" onclick="orderPlan('اشتراك سنة كاملة', 550)"><i class="fa-brands fa-whatsapp"></i> اطلب الاشتراك بواتساب</button>
             </div>
         </div>
-        <button class="action-btn" style="max-width: 200px; margin: 0 auto; background: var(--muted);" onclick="closePricingScreen()">العودة للرئيسية</button>
+        <button class="action-btn" style="max-width: 200px; margin: 0 auto; background: var(--muted);" id="closePricingBtn">العودة للرئيسية</button>
     </div>
 </div>
 
@@ -222,7 +222,7 @@
             </div>
         </div>
         <div>
-            <button class="nav-btn logout-btn" onclick="clientLogout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+            <button class="nav-btn logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
         </div>
     </div>
 
@@ -251,7 +251,7 @@
                 <div class="form-group"><label>رقم واتساب المتجر:</label><input type="text" id="storeWhatsappInput"></div>
                 <div class="form-group"><label>شعار المتجر (رابط الصورة):</label><input type="text" id="storeLogoInput"></div>
                 <div class="form-group"><label>رسالة الإدارة الترحيبية:</label><textarea id="adminMessageInput" rows="3"></textarea></div>
-                <button class="action-btn" onclick="saveStoreSettings()">حفظ التعديلات</button>
+                <button class="action-btn" id="saveSettingsBtn">حفظ التعديلات</button>
             </div>
         </div>
 
@@ -260,7 +260,7 @@
                 <h2><i class="fa-solid fa-folder-plus"></i> إضافة قسم جديد</h2>
                 <div class="form-group"><label>اسم القسم:</label><input type="text" id="newSectionName" placeholder="مثال: الحقائب الفاخرة"></div>
                 <div class="form-group"><label>صورة القسم (رابط الصورة):</label><input type="text" id="newSectionImage"></div>
-                <button class="action-btn" onclick="addSection()">إضافة القسم</button>
+                <button class="action-btn" id="addSectionBtn">إضافة القسم</button>
             </div>
             <div class="card">
                 <h2>الأقسام الحالية</h2>
@@ -279,7 +279,7 @@
                 <div class="form-group"><label>السعر (بالشيكل):</label><input type="number" id="productPriceInput"></div>
                 <div class="form-group"><label>ربح الشركاء (بالشيكل):</label><input type="number" id="productProfitInput"></div>
                 <div class="form-group"><label>صورة المنتج (رابط):</label><input type="text" id="productImageInput"></div>
-                <button class="action-btn" onclick="addProduct()">حفظ المنتج</button>
+                <button class="action-btn" id="addProductBtn">حفظ المنتج</button>
             </div>
             <div class="card">
                 <h2>المنتجات المضافة</h2>
@@ -295,28 +295,14 @@
                 <div class="form-group"><label><input type="checkbox" id="showFacebook"> تفعيل زر فيسبوك</label><input type="text" id="facebookLink" style="margin-top: 6px;"></div>
                 <div class="form-group"><label><input type="checkbox" id="showInstagram"> تفعيل زر إنستغرام</label><input type="text" id="instagramLink" style="margin-top: 6px;"></div>
                 <div class="form-group"><label><input type="checkbox" id="showTiktok"> تفعيل زر تيك توك</label><input type="text" id="tiktokLink" style="margin-top: 6px;"></div>
-                <button class="action-btn" onclick="saveSocialLinks()">حفظ روابط التواصل</button>
+                <button class="action-btn" id="saveSocialBtn">حفظ روابط التواصل</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- سكريبت التحكم بالواجهة والأزرار العامة -->
+<!-- سكريبت التحكم التفاعلي وربط الأزرار بالكامل -->
 <script>
-    function openLoginScreen() { 
-        document.getElementById('loginOverlay').style.display = 'flex'; 
-        document.getElementById('pricingOverlay').style.display = 'none';
-    }
-    function closeLoginScreen() { 
-        document.getElementById('loginOverlay').style.display = 'none'; 
-    }
-    function openPricingScreen() { 
-        document.getElementById('pricingOverlay').style.display = 'block'; 
-        document.getElementById('loginOverlay').style.display = 'none';
-    }
-    function closePricingScreen() { 
-        document.getElementById('pricingOverlay').style.display = 'none'; 
-    }
     function orderPlan(planName, price) {
         const msg = `مرحباً، أريـد الاشتراك في خدمة الكتالوج الذكي.\n- الباقة: ${planName}\n- السعر: ${price} شيقل`;
         window.open(`https://wa.me/970594101632?text=${encodeURIComponent(msg)}`, '_blank');
@@ -333,9 +319,38 @@
         navigator.clipboard.writeText(copyText.value);
         alert("تم نسخ الرابط بنجاح: " + copyText.value);
     }
+
+    // ربط إظهار وإخفاء النوافذ بشكل مباشر وتلقائي
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginOverlay = document.getElementById('loginOverlay');
+        const pricingOverlay = document.getElementById('pricingOverlay');
+
+        document.getElementById('openLoginBtn').addEventListener('click', () => {
+            loginOverlay.style.display = 'flex';
+            pricingOverlay.style.display = 'none';
+        });
+
+        document.getElementById('closeLoginBtn').addEventListener('click', () => {
+            loginOverlay.style.display = 'none';
+        });
+
+        document.getElementById('openPricingBtn').addEventListener('click', () => {
+            pricingOverlay.style.display = 'block';
+            loginOverlay.style.display = 'none';
+        });
+
+        document.getElementById('closePricingBtn').addEventListener('click', () => {
+            pricingOverlay.style.display = 'none';
+        });
+
+        document.getElementById(' switchToPricingBtn').addEventListener('click', () => {
+            loginOverlay.style.display = 'none';
+            pricingOverlay.style.display = 'block';
+        });
+    });
 </script>
 
-<!-- سكريبت Firebase ومنطق البيانات (تم ربط دالة الدخول بالنطاق العام window بضمان تام) -->
+<!-- سكريبت Firebase ومنطق البيانات والتحقق -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -355,7 +370,8 @@
     let currentLicenseId = null;
     let storeData = {};
 
-    window.executeClientLogin = async function() {
+    // تفعيل زر تسجيل الدخول واستعلام قاعدة البيانات
+    document.getElementById('submitLoginBtn').addEventListener('click', async () => {
         const phone = document.getElementById('loginPhone').value.trim();
         const key = document.getElementById('loginKey').value.trim();
         
@@ -379,21 +395,4 @@
 
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('pricingOverlay').style.display = 'none';
-            document.getElementById('mainDashboard').style.display = 'grid';
-            loadDashboardData();
-        } catch(e) {
-            console.error(e);
-            alert('حدث خطأ أثناء تسجيل الدخول.');
-        }
-    }
-
-    window.clientLogout = function() {
-        document.getElementById('mainDashboard').style.display = 'none';
-        document.getElementById('homeScreen').style.display = 'block';
-    }
-
-    function loadDashboardData() {
-        document.getElementById('sidebarStoreName').innerText = storeData.client_name || 'EVA Catalog';
-        document.getElementById('managerNameInput').value = storeData.manager_name || '';
-        document.
+            document
