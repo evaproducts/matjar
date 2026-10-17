@@ -138,7 +138,7 @@
         <p>أدخل رقم الهاتف ورمز التفعيل الخاص بمتجرك</p>
         <div class="form-group">
             <label>رقم الهاتف (User):</label>
-            <input type="text" id="loginPhone" placeholder="059334655" maxlength="10">
+            <input type="text" id="loginPhone" placeholder="059334655" maxlength="15">
         </div>
         <div class="form-group">
             <label>رمز التفعيل:</label>
@@ -146,7 +146,7 @@
         </div>
         <button class="action-btn" id="submitLoginBtn">دخول لوحة التحكم</button>
         <div style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 15px;">
-            <button class="action-btn" id=" switchToPricingBtn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);">عرض باقات وحزم الاشتراك</button>
+            <button class="action-btn" id="switchToPricingBtn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);">عرض باقات وحزم الاشتراك</button>
         </div>
     </div>
 </div>
@@ -301,7 +301,7 @@
     </div>
 </div>
 
-<!-- سكريبت التحكم التفاعلي وربط الأزرار بالكامل -->
+<!-- سكريبت التحكم بالواجهة -->
 <script>
     function orderPlan(planName, price) {
         const msg = `مرحباً، أريـد الاشتراك في خدمة الكتالوج الذكي.\n- الباقة: ${planName}\n- السعر: ${price} شيقل`;
@@ -320,7 +320,6 @@
         alert("تم نسخ الرابط بنجاح: " + copyText.value);
     }
 
-    // ربط إظهار وإخفاء النوافذ بشكل مباشر وتلقائي
     document.addEventListener('DOMContentLoaded', () => {
         const loginOverlay = document.getElementById('loginOverlay');
         const pricingOverlay = document.getElementById('pricingOverlay');
@@ -343,17 +342,17 @@
             pricingOverlay.style.display = 'none';
         });
 
-        document.getElementById(' switchToPricingBtn').addEventListener('click', () => {
+        document.getElementById('switchToPricingBtn').addEventListener('click', () => {
             loginOverlay.style.display = 'none';
             pricingOverlay.style.display = 'block';
         });
     });
 </script>
 
-<!-- سكريبت Firebase ومنطق البيانات والتحقق -->
+<!-- سكريبت Firebase والتحقق وتجاوز أي قيود في الأسماء -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCW-Kqz4jQbu-wUg-LOVPJdWv7p3jIOB6o",
@@ -370,29 +369,16 @@
     let currentLicenseId = null;
     let storeData = {};
 
-    // تفعيل زر تسجيل الدخول واستعلام قاعدة البيانات
     document.getElementById('submitLoginBtn').addEventListener('click', async () => {
-        const phone = document.getElementById('loginPhone').value.trim();
-        const key = document.getElementById('loginKey').value.trim();
+        const phoneInput = document.getElementById('loginPhone').value.trim();
+        const keyInput = document.getElementById('loginKey').value.trim();
         
-        if(!phone || !key) { 
+        if(!phoneInput || !keyInput) { 
             alert('يرجى إدخال رقم الهاتف ورمز التفعيل!'); 
             return; 
         }
 
         try {
-            const q = query(collection(db, "licenses"), where("phone", "==", phone), where("key_code", "==", key));
-            const snapshot = await getDocs(q);
-            
-            if(snapshot.empty) { 
-                alert('خطأ في رقم الهاتف أو رمز التفعيل!'); 
-                return; 
-            }
-
-            const docSnap = snapshot.docs[0];
-            currentLicenseId = docSnap.id;
-            storeData = docSnap.data();
-
-            document.getElementById('homeScreen').style.display = 'none';
-            document.getElementById('loginOverlay').style.display = 'none';
-            document
+            // جلب كافة المستندات والبحث المرن لتجنب أي اختلاف في حقول الفايربيس
+            const querySnapshot = await getDocs(collection(db, "licenses"));
+            let matchedDoc = null
