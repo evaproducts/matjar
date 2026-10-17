@@ -44,13 +44,13 @@
         .btn-outline { background: var(--surface); color: var(--primary); border: 2px solid var(--primary); padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-outline:hover { background: var(--primary-soft); }
 
-        /* شاشة تسجيل الدخول */
+        /* شاشة تسجيل الدخول (تظهر عند الضغط على تسجيل الدخول) */
         #loginOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .login-card { background: var(--surface); padding: 40px 30px; border-radius: var(--radius); width: 100%; max-width: 420px; box-shadow: var(--shadow); border: 1px solid var(--line); text-align: center; position: relative; }
         .login-card h2 { margin-bottom: 10px; color: var(--ink); font-weight: 700; font-size: 1.4rem; }
         .login-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 25px; }
 
-        /* شاشة الباقات والأسعار */
+        /* شاشة الباقات والأسعار (تظهر عند الضغط على عرض الباقات) */
         #pricingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--surface-2); overflow-y: auto; z-index: 1100; padding: 40px 20px; }
         .pricing-container { max-width: 1100px; margin: 0 auto; text-align: center; }
         .pricing-header h1 { font-size: 2rem; color: var(--ink); margin-bottom: 10px; font-weight: 900; }
@@ -106,7 +106,9 @@
         <h1>مرحباً بك في منصة <span>EVA Catalog</span></h1>
         <p>المنصة الاحترافية الأولى لإنشاء وإدارة الكتالوجات الرقمية والمتاجر المصغرة. اعرض منتجاتك، نظم أقسامك، وشارك رابط متجرك مع زبائك بكل سهولة واحترافية.</p>
         <div class="cta-buttons">
+            <!-- تم ربط هذا الزر بفتح شاشة تسجيل الدخول -->
             <button class="btn-main" onclick="openLoginScreen()">تسجيل دخول لوحة التحكم</button>
+            <!-- تم ربط هذا الزر بفتح شاشة الباقات والأسعار -->
             <button class="btn-outline" onclick="openPricingScreen()">عرض باقات وأسعار الاشتراك</button>
         </div>
     </div>
@@ -130,12 +132,12 @@
     </div>
 </div>
 
-<!-- شاشة تسجيل الدخول -->
+<!-- شاشة تسجيل الدخول (تدخل فيها اليوزر ورمز التفعيل) -->
 <div id="loginOverlay">
     <div class="login-card">
         <button onclick="closeLoginScreen()" style="position: absolute; top: 15px; left: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
         <h2>تسجيل دخول لوحة التحكم</h2>
-        <p>أدخل بيانات الاعتماد الخاصة بمتجرك لإدارة الكتالوج</p>
+        <p>أدخل رقم الهاتف ورمز التفعيل الخاص بمتجرك</p>
         <div class="form-group">
             <label>رقم الهاتف (User):</label>
             <input type="text" id="loginPhone" placeholder="0594101632" maxlength="10">
@@ -146,12 +148,12 @@
         </div>
         <button class="action-btn" onclick="clientLogin()">دخول لوحة التحكم</button>
         <div style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 15px;">
-            <button class="action-btn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);" onclick="openPricingScreen(); closeLoginScreen();">عرض باقات وحزم الاشتراك</button>
+            <button class="action-btn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);" onclick="closeLoginScreen(); openPricingScreen();">عرض باقات وحزم الاشتراك</button>
         </div>
     </div>
 </div>
 
-<!-- شاشة حزم والأسعار الاحترافية -->
+<!-- شاشة حزم والأسعار الاحترافية (تظهر عند الضغط على عرض الباقات) -->
 <div id="pricingOverlay">
     <div class="pricing-container">
         <div class="pricing-header">
@@ -294,4 +296,98 @@
                 <h2><i class="fa-solid fa-share-nodes"></i> إدارة روابط شبكات التواصل</h2>
                 <div class="form-group"><label><input type="checkbox" id="showFacebook"> تفعيل زر فيسبوك</label><input type="text" id="facebookLink" style="margin-top: 6px;"></div>
                 <div class="form-group"><label><input type="checkbox" id="showInstagram"> تفعيل زر إنستغرام</label><input type="text" id="instagramLink" style="margin-top: 6px;"></div>
-                <div class="form-group"><label><input type="checkbox" id="showTiktok"> تفعيل زر تيك توك</label><input type="text" id="tiktok
+                <div class="form-group"><label><input type="checkbox" id="showTiktok"> تفعيل زر تيك توك</label><input type="text" id="tiktokLink" style="margin-top: 6px;"></div>
+                <button class="action-btn" onclick="saveSocialLinks()">حفظ روابط التواصل</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- سكريبت التحكم بالواجهة والأزرار -->
+<script>
+    // فتح شاشة تسجيل الدخول فقط
+    function openLoginScreen() { 
+        document.getElementById('loginOverlay').style.display = 'flex'; 
+        document.getElementById('pricingOverlay').style.display = 'none';
+    }
+    function closeLoginScreen() { 
+        document.getElementById('loginOverlay').style.display = 'none'; 
+    }
+
+    // فتح شاشة الباقات والأسعار فقط
+    function openPricingScreen() { 
+        document.getElementById('pricingOverlay').style.display = 'block'; 
+        document.getElementById('loginOverlay').style.display = 'none';
+    }
+    function closePricingScreen() { 
+        document.getElementById('pricingOverlay').style.display = 'none'; 
+    }
+
+    function orderPlan(planName, price) {
+        const msg = `مرحباً، أريـد الاشتراك في خدمة الكتالوج الذكي.\n- الباقة: ${planName}\n- السعر: ${price} شيقل`;
+        window.open(`https://wa.me/970594101632?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => { if(!el.classList.contains('logout-btn')) el.classList.remove('active'); });
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function copyLink() {
+        const copyText = document.getElementById("displayCatalogLink");
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert("تم نسخ الرابط بنجاح: " + copyText.value);
+    }
+</script>
+
+<!-- سكريبت Firebase ومنطق البيانات -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCW-Kqz4jQbu-wUg-LOVPJdWv7p3jIOB6o",
+        authDomain: "eva-bank-a077d.firebaseapp.com",
+        projectId: "eva-bank-a077d",
+        storageBucket: "eva-bank-a077d.firebasestorage.app",
+        messagingSenderId: "264483948353",
+        appId: "1:264483948353:web:4472d6ee97b432a351b800"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentLicenseId = null;
+    let storeData = {};
+
+    window.clientLogin = async function() {
+        const phone = document.getElementById('loginPhone').value.trim();
+        const key = document.getElementById('loginKey').value.trim();
+        if(!phone || !key) { alert('يرجى إدخال رقم الهاتف ورمز التفعيل!'); return; }
+
+        try {
+            const q = query(collection(db, "licenses"), where("phone", "==", phone), where("key_code", "==", key));
+            const snapshot = await getDocs(q);
+            if(snapshot.empty) { alert('خطأ في رقم الهاتف أو رمز التفعيل!'); return; }
+
+            const docSnap = snapshot.docs[0];
+            currentLicenseId = docSnap.id;
+            storeData = docSnap.data();
+
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('pricingOverlay').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'grid';
+            loadDashboardData();
+        } catch(e) {
+            alert('حدث خطأ أثناء تسجيل الدخول.');
+        }
+    }
+
+    window.clientLogout = function() {
+        document.getElementById('mainDashboard').style.display = 'none';
+        document.getElementById('homeScreen').style.display = 'block';
+    }
