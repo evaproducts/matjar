@@ -96,34 +96,9 @@
         th { background-color: var(--surface-2); color: var(--muted); font-weight: 700; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
-        /* تصميم واجهة الكتالوج العام للزبائن */
-        #publicCatalogView { display: none; max-width: 800px; margin: 0 auto; padding: 30px 20px; text-align: center; }
-        .catalog-header { background: var(--surface); padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--line); }
-        .catalog-logo { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--primary); }
-        .admin-note { background: var(--primary-soft); color: var(--primary); padding: 12px; border-radius: 12px; font-weight: 700; margin: 15px 0; }
-        .social-icons { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
-        .social-icon-btn { background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.1rem; }
-        .sections-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; text-align: right; }
-        .section-card { background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center; }
-        .section-card img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-bottom: 8px; }
     </style>
 </head>
 <body>
-
-<!-- واجهة الكتالوج العامة للزبائن -->
-<div id="publicCatalogView">
-    <div class="catalog-header">
-        <img id="pubStoreLogo" class="catalog-logo" src="https://via.placeholder.com/90" alt="Logo">
-        <h1 id="pubStoreName" style="font-size: 1.8rem; font-weight: 900; color: var(--ink);">اسم المتجر</h1>
-        <div id="pubAdminMessage" class="admin-note">رسالة الإدارة الترحيبية</div>
-        <div id="pubSocialLinks" class="social-icons"></div>
-    </div>
-    <div class="card">
-        <h2><i class="fa-solid fa-folder-open"></i> أقسام المعرض</h2>
-        <div id="pubSectionsContainer" class="sections-grid"></div>
-    </div>
-</div>
 
 <!-- الشاشة الرئيسية التعريفية -->
 <div id="homeScreen">
@@ -131,8 +106,8 @@
         <h1>مرحباً بك في منصة <span>EVA Catalog</span></h1>
         <p>المنصة الاحترافية الأولى لإنشاء وإدارة الكتالوجات الرقمية والمتاجر المصغرة. اعرض منتجاتك، نظم أقسامك، وشارك رابط متجرك مع زبائك بكل سهولة واحترافية.</p>
         <div class="cta-buttons">
-            <button class="btn-main" id="openLoginBtn">تسجيل دخول لوحة التحكم</button>
-            <button class="btn-outline" id="openPricingBtn">عرض باقات وأسعار الاشتراك</button>
+            <button class="btn-main" onclick="openLoginScreen()">تسجيل دخول لوحة التحكم</button>
+            <button class="btn-outline" onclick="openPricingScreen()">عرض باقات وأسعار الاشتراك</button>
         </div>
     </div>
 
@@ -158,20 +133,20 @@
 <!-- شاشة تسجيل الدخول -->
 <div id="loginOverlay">
     <div class="login-card">
-        <button id="closeLoginBtn" style="position: absolute; top: 15px; left: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeLoginScreen()" style="position: absolute; top: 15px; left: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
         <h2>تسجيل دخول لوحة التحكم</h2>
         <p>أدخل رقم الهاتف ورمز التفعيل الخاص بمتجرك</p>
         <div class="form-group">
             <label>رقم الهاتف (User):</label>
-            <input type="text" id="loginPhone" placeholder="059334655" maxlength="15">
+            <input type="text" id="loginPhone" placeholder="0594101632" maxlength="10">
         </div>
         <div class="form-group">
             <label>رمز التفعيل:</label>
             <input type="password" id="loginKey" placeholder="EVA-CATALOG-XXXXXX">
         </div>
-        <button class="action-btn" id="submitLoginBtn">دخول لوحة التحكم</button>
+        <button class="action-btn" onclick="clientLogin()">دخول لوحة التحكم</button>
         <div style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 15px;">
-            <button class="action-btn" id="switchToPricingBtn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);">عرض باقات وحزم الاشتراك</button>
+            <button class="action-btn" style="background: var(--surface-2); color: var(--primary); border: 1px solid var(--primary);" onclick="closeLoginScreen(); openPricingScreen();">عرض باقات وحزم الاشتراك</button>
         </div>
     </div>
 </div>
@@ -198,79 +173,4 @@
                     <div class="price-desc">باقة ربع سنوية مثالية لاستقرار وتوسيع نشاطك التجاري.</div>
                     <div class="price-amount">140 ₪ <span>/ 3 شهور</span></div>
                 </div>
-                <button class="whatsapp-plan-btn" onclick="orderPlan('اشتراك 3 شهور', 140)"><i class="fa-brands fa-whatsapp"></i> اطلب الاشتراك بواتساب</button>
-            </div>
-            <div class="price-card featured">
-                <span class="featured-badge">الأكثر طلباً</span>
-                <div>
-                    <div class="price-title">اشتراك 6 شهور</div>
-                    <div class="price-desc">نصف سنوي يوفر لك استمرارية كاملة مع توفير أعلى.</div>
-                    <div class="price-amount">270 ₪ <span>/ 6 شهور</span></div>
-                </div>
-                <button class="whatsapp-plan-btn" onclick="orderPlan('اشتراك 6 شهور', 270)"><i class="fa-brands fa-whatsapp"></i> اطلب الاشتراك بواتساب</button>
-            </div>
-            <div class="price-card">
-                <div>
-                    <div class="price-title">اشتراك 9 شهور</div>
-                    <div class="price-desc">باقة ممتدة لدعم النمو المستدام لمتجرك الإلكتروني.</div>
-                    <div class="price-amount">400 ₪ <span>/ 9 شهور</span></div>
-                </div>
-                <button class="whatsapp-plan-btn" onclick="orderPlan('اشتراك 9 شهور', 400)"><i class="fa-brands fa-whatsapp"></i> اطلب الاشتراك بواتساب</button>
-            </div>
-            <div class="price-card">
-                <div>
-                    <div class="price-title">اشتراك سنة كاملة</div>
-                    <div class="price-desc">الاشتراك السنوي الشامل لأقصى توفير وأفضل أداء لعلامتك.</div>
-                    <div class="price-amount">550 ₪ <span>/ 12 شهر</span></div>
-                </div>
-                <button class="whatsapp-plan-btn" onclick="orderPlan('اشتراك سنة كاملة', 550)"><i class="fa-brands fa-whatsapp"></i> اطلب الاشتراك بواتساب</button>
-            </div>
-        </div>
-        <button class="action-btn" style="max-width: 200px; margin: 0 auto; background: var(--muted);" id="closePricingBtn">العودة للرئيسية</button>
-    </div>
-</div>
-
-<!-- لوحة تحكم العميل الرئيسية -->
-<div class="app-layout" id="mainDashboard" style="display: none;">
-    <div class="sidebar">
-        <div>
-            <div class="sidebar-brand">
-                <h3 id="sidebarStoreName">EVA Catalog</h3>
-                <p>لوحة إدارة المتجر</p>
-            </div>
-            <div class="nav-links">
-                <button class="nav-btn active" onclick="switchTab('overviewTab', this)"><i class="fa-solid fa-house"></i> الرئيسية ونظرة عامة</button>
-                <button class="nav-btn" onclick="switchTab('settingsTab', this)"><i class="fa-solid fa-gear"></i> إعدادات المتجر والبراند</button>
-                <button class="nav-btn" onclick="switchTab('sectionsTab', this)"><i class="fa-solid fa-folder-open"></i> إدارة الأقسام</button>
-                <button class="nav-btn" onclick="switchTab('productsTab', this)"><i class="fa-solid fa-box-open"></i> إدارة المنتجات</button>
-                <button class="nav-btn" onclick="switchTab('socialTab', this)"><i class="fa-solid fa-share-nodes"></i> شبكات التواصل الاجتماعي</button>
-            </div>
-        </div>
-        <div>
-            <button class="nav-btn logout-btn" onclick="clientLogout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div id="overviewTab" class="tab-content active">
-            <div class="card">
-                <h2><i class="fa-solid fa-circle-info"></i> حالة الاشتراك والرابط الخاص</h2>
-                <div class="form-group">
-                    <label>رابط الكتالوج الخاص بك (انسخه وشاركه مع زبائك):</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="displayCatalogLink" readonly style="background: #eee;">
-                        <button class="action-btn" style="width: auto;" onclick="copyLink()">نسخ الرابط</button>
-                    </div>
-                </div>
-                <div id="subscriptionStatusBox" style="margin-top: 15px; padding: 15px; background: var(--primary-soft); border-radius: 10px; font-weight: 700; color: var(--primary);"></div>
-            </div>
-        </div>
-
-        <div id="settingsTab" class="tab-content">
-            <div class="card">
-                <h2><i class="fa-solid fa-store"></i> معلومات المدير والبراند</h2>
-                <div class="form-group"><label>اسم المدير:</label><input type="text" id="managerNameInput"></div>
-                <div class="form-group"><label>اسم المتجر / البراند:</label><input type="text" id="storeNameInput"></div>
-                <div class="form-group"><label>اسم البراند بالإنجليزية (لرابط الكتالوج):</label><input type="text" id="brandSlugInput"></div>
-                <div class="form-group"><label>رقم هاتف المدير:</label><input type="text" id="managerPhoneInput"></div>
-                <div class="form-group"><label>رقم واتساب المتجر:</label><input type="text
+                <button class="whatsapp-plan-btn" onclick="orderPlan('اشتراك 3 شهور', 140)"><i class="fa-brands fa-whatsapp"></i> اطلب الاشتراك بوات
