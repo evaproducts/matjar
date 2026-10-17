@@ -258,4 +258,40 @@
         <div id="sectionsTab" class="tab-content">
             <div class="card">
                 <h2><i class="fa-solid fa-folder-plus"></i> إضافة قسم جديد</h2>
-                <div class="form-group"><label>اسم القسم:</label><input type="
+                <div class="form-group"><label>اسم القسم:</label><input type="text" id="newSectionName" placeholder="مثال: الحقائب الفاخرة"></div>
+                <div class="form-group"><label>صورة القسم (رابط الصورة):</label><input type="text" id="newSectionImage"></div>
+                <button class="action-btn" onclick="addSection()">إضافة القسم</button>
+            </div>
+            <div class="card">
+                <h2>الأقسام الحالية</h2>
+                <div class="table-responsive">
+                    <table><thead><tr><th>اسم القسم</th><th>الإجراء</th></tr></thead><tbody id="sectionsTableBody"><tr><td colspan="2">لا توجد أقسام مضافة</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="productsTab" class="tab-content">
+            <div class="card">
+                <h2><i class="fa-solid fa-cart-plus"></i> إضافة منتج جديد</h2>
+                <div class="form-group"><label>اختر القسم:</label><select id="productSectionSelect"></select></div>
+                <div class="form-group"><label>اسم المنتج:</label><input type="text" id="productNameInput"></div>
+                <div class="form-group"><label>الكود التلقائي:</label><input type="text" id="productCodeInput" readonly style="background: #eee; font-weight: bold;"></div>
+                <div class="form-group"><label>السعر (بالشيكل):</label><input type="number" id="productPriceInput"></div>
+                <div class="form-group"><label>ربح الشركاء (بالشيكل):</label><input type="number" id="productProfitInput"></div>
+                <div class="form-group"><label>صورة المنتج (رابط):</label><input type="text" id="productImageInput"></div>
+                <button class="action-btn" onclick="addProduct()">حفظ المنتج</button>
+            </div>
+            <div class="card">
+                <h2>المنتجات المضافة</h2>
+                <div class="table-responsive">
+                    <table><thead><tr><th>الكود</th><th>المنتج</th><th>القسم</th><th>السعر</th><th>الإجراء</th></tr></thead><tbody id="productsTableBody"><tr><td colspan="5">لا توجد منتجات مضافة</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="socialTab" class="tab-content">
+            <div class="card">
+                <h2><i class="fa-solid fa-share-nodes"></i> إدارة روابط شبكات التواصل</h2>
+                <div class="form-group"><label><input type="checkbox" id="showFacebook"> تفعيل زر فيسبوك</label><input type="text" id="facebookLink" style="margin-top: 6px;"></div>
+                <div class="form-group"><label><input type="checkbox" id="showInstagram"> تفعيل زر إنستغرام</label><input type="text" id="instagramLink" style="margin-top: 6px;"></div>
+                <div class="form-group"><label><input type="checkbox" id="showTiktok"> تفعيل زر تيك توك</label><input type="text" id="tiktok
